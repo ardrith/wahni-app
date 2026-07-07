@@ -11,26 +11,58 @@ class ProductCard extends ConsumerWidget {
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
+    final theme = Theme.of(context);
     final inCart = ref.watch(
       cartProvider.select((cart) => cart.containsKey(product.id)),
     );
 
-    return Card(
-      margin: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
+    return Container(
+      margin: const EdgeInsets.symmetric(horizontal: 16, vertical: 6),
+      decoration: BoxDecoration(
+        color: Colors.white,
+        borderRadius: BorderRadius.circular(20),
+        boxShadow: [
+          BoxShadow(
+            color: Colors.black.withOpacity(0.05),
+            blurRadius: 16,
+            offset: const Offset(0, 4),
+          ),
+        ],
+      ),
       child: Padding(
-        padding: const EdgeInsets.all(12),
+        padding: const EdgeInsets.all(14),
         child: Row(
           children: [
-            CachedNetworkImage(
-              imageUrl: product.image,
-              width: 70,
-              height: 70,
-              fit: BoxFit.contain,
-              placeholder: (context, url) =>
-                  const SizedBox(width: 70, height: 70, child: Center(child: CircularProgressIndicator(strokeWidth: 2))),
-              errorWidget: (context, url, error) => const Icon(Icons.broken_image, size: 70),
+            // Image
+            Container(
+              width: 72,
+              height: 72,
+              decoration: BoxDecoration(
+                color: const Color(0xFFF0F1F8),
+                borderRadius: BorderRadius.circular(16),
+              ),
+              padding: const EdgeInsets.all(10),
+              child: CachedNetworkImage(
+                imageUrl: product.image,
+                fit: BoxFit.contain,
+                placeholder: (context, url) => Center(
+                  child: SizedBox(
+                    width: 16,
+                    height: 16,
+                    child: CircularProgressIndicator(
+                      strokeWidth: 2,
+                      color: theme.colorScheme.primary,
+                    ),
+                  ),
+                ),
+                errorWidget: (context, url, error) => Icon(
+                  Icons.image_not_supported_outlined,
+                  color: theme.colorScheme.outline,
+                ),
+              ),
             ),
-            const SizedBox(width: 12),
+            const SizedBox(width: 14),
+            // Name + price
             Expanded(
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
@@ -39,27 +71,75 @@ class ProductCard extends ConsumerWidget {
                     product.name,
                     maxLines: 2,
                     overflow: TextOverflow.ellipsis,
-                    style: const TextStyle(fontWeight: FontWeight.w600),
+                    style: const TextStyle(
+                      fontSize: 13.5,
+                      fontWeight: FontWeight.w600,
+                      color: Color(0xFF1A1D2E),
+                      height: 1.3,
+                    ),
                   ),
-                  const SizedBox(height: 4),
+                  const SizedBox(height: 8),
                   Text(
-                    '\$${product.price.toStringAsFixed(2)}',
+                    'Rs. ${product.price.toStringAsFixed(2)}',
                     style: TextStyle(
-                      color: Theme.of(context).colorScheme.primary,
-                      fontWeight: FontWeight.bold,
+                      fontSize: 15,
+                      fontWeight: FontWeight.w800,
+                      color: theme.colorScheme.primary,
                     ),
                   ),
                 ],
               ),
             ),
-            const SizedBox(width: 8),
-            inCart
-                ? QuantityController(product: product)
-                : ElevatedButton(
-                    onPressed: () =>
-                        ref.read(cartProvider.notifier).addItem(product),
-                    child: const Text('Add'),
-                  ),
+            const SizedBox(width: 10),
+            // Add / Qty
+            AnimatedSwitcher(
+              duration: const Duration(milliseconds: 220),
+              child: inCart
+                  ? QuantityController(
+                      key: ValueKey(product.id),
+                      product: product,
+                    )
+                  : _AddButton(
+                      key: ValueKey('add_${product.id}'),
+                      onTap: () =>
+                          ref.read(cartProvider.notifier).addItem(product),
+                    ),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+}
+
+class _AddButton extends StatelessWidget {
+  final VoidCallback onTap;
+  const _AddButton({super.key, required this.onTap});
+
+  @override
+  Widget build(BuildContext context) {
+    return GestureDetector(
+      onTap: onTap,
+      child: Container(
+        height: 38,
+        padding: const EdgeInsets.symmetric(horizontal: 16),
+        decoration: BoxDecoration(
+          color: Theme.of(context).colorScheme.primary,
+          borderRadius: BorderRadius.circular(12),
+        ),
+        child: const Row(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            Icon(Icons.add_rounded, color: Colors.white, size: 16),
+            SizedBox(width: 4),
+            Text(
+              'Add',
+              style: TextStyle(
+                color: Colors.white,
+                fontWeight: FontWeight.w700,
+                fontSize: 13,
+              ),
+            ),
           ],
         ),
       ),

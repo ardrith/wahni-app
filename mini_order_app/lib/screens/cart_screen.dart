@@ -1,13 +1,17 @@
+import 'package:cached_network_image/cached_network_image.dart';
 import 'package:flutter/material.dart';
-import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import '../data/models/cart_item.dart';
 import '../providers/cart_provider.dart';
+import '../widgets/quantity_controller.dart';
+import '../data/models/product.dart';
 
 class CartScreen extends ConsumerWidget {
   const CartScreen({super.key});
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
+    final theme = Theme.of(context);
     final cart = ref.watch(cartProvider);
     final items = cart.values.toList();
     final uniqueCount = ref.watch(cartItemCountProvider);
@@ -15,135 +19,249 @@ class CartScreen extends ConsumerWidget {
     final grandTotal = ref.watch(cartGrandTotalProvider);
 
     return Scaffold(
-      appBar: AppBar(title: const Text('Cart')),
-      body: items.isEmpty
-          ? const Center(child: Text('Your cart is empty'))
-          : Column(
-              children: [
-                Expanded(
-                  child: ListView.builder(
-                    itemCount: items.length,
-                    itemBuilder: (_, i) {
-                      final item = items[i];
-                      final subtotal = item.price * item.quantity;
-                      return ListTile(
-                        leading: Text(
-                          '\$${item.price.toStringAsFixed(2)}',
-                          style: const TextStyle(fontSize: 12),
-                        ),
-                        title: Text(item.name, maxLines: 1, overflow: TextOverflow.ellipsis),
-                        subtitle: Text('Subtotal: \$${subtotal.toStringAsFixed(2)}'),
-                        trailing: _CartQtyControl(
-                          productId: item.productId,
-                          quantity: item.quantity,
-                        ),
-                      );
-                    },
+      backgroundColor: const Color(0xFFF6F7FB),
+      body: SafeArea(
+        child: Column(
+          children: [
+       
+            Padding(
+              padding: const EdgeInsets.fromLTRB(20, 20, 20, 16),
+              child: Row(
+                children: [
+                  GestureDetector(
+                    onTap: () => Navigator.pop(context),
+                    child: Container(
+                      width: 46,
+                      height: 46,
+                      decoration: BoxDecoration(
+                        color: Colors.white,
+                        borderRadius: BorderRadius.circular(14),
+                        boxShadow: [
+                          BoxShadow(
+                            color: Colors.black.withOpacity(0.07),
+                            blurRadius: 12,
+                            offset: const Offset(0, 4),
+                          ),
+                        ],
+                      ),
+                      child: Icon(
+                        Icons.arrow_back_ios_new_rounded,
+                        color: theme.colorScheme.primary,
+                        size: 18,
+                      ),
+                    ),
                   ),
-                ),
-                _SummaryPanel(
-                  uniqueCount: uniqueCount,
-                  totalUnits: totalUnits,
-                  grandTotal: grandTotal,
-                ),
-              ],
+                  const SizedBox(width: 14),
+                  Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Text(
+                        'My Cart 🛍️',
+                        style: theme.textTheme.labelLarge?.copyWith(
+                          color: theme.colorScheme.primary,
+                          fontWeight: FontWeight.w600,
+                        ),
+                      ),
+                      const SizedBox(height: 2),
+                      Text(
+                        '$uniqueCount ${uniqueCount == 1 ? 'Item' : 'Items'}',
+                        style: theme.textTheme.headlineSmall?.copyWith(
+                          fontWeight: FontWeight.w800,
+                          color: const Color(0xFF1A1D2E),
+                        ),
+                      ),
+                    ],
+                  ),
+                ],
+              ),
             ),
+
+    
+            Expanded(
+              child: items.isEmpty
+                  ? _EmptyCart(theme: theme)
+                  : ListView.builder(
+                      padding: const EdgeInsets.only(bottom: 16),
+                      itemCount: items.length,
+                      itemBuilder: (_, i) => _CartItemCard(item: items[i]),
+                    ),
+            ),
+
+   
+            if (items.isNotEmpty)
+              _SummaryPanel(
+                uniqueCount: uniqueCount,
+                totalUnits: totalUnits,
+                grandTotal: grandTotal,
+              ),
+          ],
+        ),
+      ),
     );
   }
 }
 
-class _CartQtyControl extends ConsumerStatefulWidget {
-  final int productId;
-  final int quantity;
-  const _CartQtyControl({required this.productId, required this.quantity});
+
+
+class _CartItemCard extends ConsumerWidget {
+  final CartItem item;
+  const _CartItemCard({required this.item});
 
   @override
-  ConsumerState<_CartQtyControl> createState() => _CartQtyControlState();
+  Widget build(BuildContext context, WidgetRef ref) {
+    final theme = Theme.of(context);
+    final subtotal = item.price * item.quantity;
+
+
+    final product = Product(
+      id: item.productId,
+      name: item.name,
+      price: item.price,
+      image: item.image,
+    );
+
+    return Container(
+      margin: const EdgeInsets.symmetric(horizontal: 16, vertical: 6),
+      decoration: BoxDecoration(
+        color: Colors.white,
+        borderRadius: BorderRadius.circular(20),
+        boxShadow: [
+          BoxShadow(
+            color: Colors.black.withOpacity(0.05),
+            blurRadius: 16,
+            offset: const Offset(0, 4),
+          ),
+        ],
+      ),
+      child: Padding(
+        padding: const EdgeInsets.all(14),
+        child: Row(
+          children: [
+            // Image
+            Container(
+              width: 52,
+              height: 52,
+              decoration: BoxDecoration(
+                color: const Color(0xFFF0F1F8),
+                borderRadius: BorderRadius.circular(16),
+              ),
+              padding: const EdgeInsets.all(10),
+              child: CachedNetworkImage(
+                imageUrl: item.image,
+                fit: BoxFit.contain,
+                placeholder: (context, url) => Center(
+                  child: SizedBox(
+                    width: 16,
+                    height: 16,
+                    child: CircularProgressIndicator(
+                      strokeWidth: 2,
+                      color: theme.colorScheme.primary,
+                    ),
+                  ),
+                ),
+                errorWidget: (context, url, error) => Icon(
+                  Icons.image_not_supported_outlined,
+                  color: theme.colorScheme.outline,
+                ),
+              ),
+            ),
+            const SizedBox(width: 14),
+            // Name + price + subtotal
+            Expanded(
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Text(
+                    item.name,
+                    maxLines: 2,
+                    overflow: TextOverflow.ellipsis,
+                    style: const TextStyle(
+                      fontSize: 13.5,
+                      fontWeight: FontWeight.w600,
+                      color: Color(0xFF1A1D2E),
+                      height: 1.3,
+                    ),
+                  ),
+                  const SizedBox(height: 4),
+                  Text(
+                    'Rs .${item.price.toStringAsFixed(2)}',
+                    style: TextStyle(
+                      fontSize: 13,
+                      fontWeight: FontWeight.w500,
+                      color: theme.colorScheme.outline,
+                    ),
+                  ),
+                  const SizedBox(height: 2),
+                  Text(
+                    'Subtotal: \n Rs. ${subtotal.toStringAsFixed(2)}',
+                    style: TextStyle(
+                      fontSize: 13,
+                      fontWeight: FontWeight.w700,
+                      color: theme.colorScheme.primary,
+                    ),
+                  ),
+                ],
+              ),
+            ),
+            const SizedBox(width: 10),
+
+            QuantityController(product: product),
+          ],
+        ),
+      ),
+    );
+  }
 }
 
-class _CartQtyControlState extends ConsumerState<_CartQtyControl> {
-  late TextEditingController _ctrl;
-  late FocusNode _focus;
 
-  @override
-  void initState() {
-    super.initState();
-    _ctrl = TextEditingController(text: widget.quantity.toString());
-    _focus = FocusNode();
-    _focus.addListener(_onFocusChange);
-  }
 
-  void _onFocusChange() {
-    if (!_focus.hasFocus) {
-      final val = int.tryParse(_ctrl.text) ?? 0;
-      ref.read(cartProvider.notifier).setQuantity(widget.productId, val);
-    }
-  }
-
-  @override
-  void didUpdateWidget(covariant _CartQtyControl oldWidget) {
-    super.didUpdateWidget(oldWidget);
-    if (!_focus.hasFocus && _ctrl.text != widget.quantity.toString()) {
-      _ctrl.text = widget.quantity.toString();
-    }
-  }
-
-  @override
-  void dispose() {
-    _focus.removeListener(_onFocusChange);
-    _focus.dispose();
-    _ctrl.dispose();
-    super.dispose();
-  }
+class _EmptyCart extends StatelessWidget {
+  final ThemeData theme;
+  const _EmptyCart({required this.theme});
 
   @override
   Widget build(BuildContext context) {
-    return Row(
-      mainAxisSize: MainAxisSize.min,
-      children: [
-        IconButton(
-          icon: const Icon(Icons.remove_circle_outline),
-          onPressed: () {
-            final next = widget.quantity - 1;
-            if (next <= 0) {
-              ref.read(cartProvider.notifier).removeItem(widget.productId);
-            } else {
-              _ctrl.text = next.toString();
-              ref.read(cartProvider.notifier).setQuantity(widget.productId, next);
-            }
-          },
-        ),
-        SizedBox(
-          width: 44,
-          child: TextField(
-            controller: _ctrl,
-            focusNode: _focus,
-            textAlign: TextAlign.center,
-            keyboardType: TextInputType.number,
-            inputFormatters: [FilteringTextInputFormatter.digitsOnly],
-            decoration: const InputDecoration(
-              isDense: true,
-              contentPadding: EdgeInsets.symmetric(vertical: 6),
-              border: OutlineInputBorder(),
+    return Center(
+      child: Column(
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          Container(
+            width: 80,
+            height: 80,
+            decoration: BoxDecoration(
+              color: theme.colorScheme.primaryContainer,
+              shape: BoxShape.circle,
             ),
-            onSubmitted: (val) {
-              final qty = int.tryParse(val) ?? 0;
-              ref.read(cartProvider.notifier).setQuantity(widget.productId, qty);
-            },
+            child: Icon(
+              Icons.shopping_bag_outlined,
+              size: 38,
+              color: theme.colorScheme.primary,
+            ),
           ),
-        ),
-        IconButton(
-          icon: const Icon(Icons.add_circle_outline),
-          onPressed: () {
-            final next = widget.quantity + 1;
-            _ctrl.text = next.toString();
-            ref.read(cartProvider.notifier).setQuantity(widget.productId, next);
-          },
-        ),
-      ],
+          const SizedBox(height: 20),
+          const Text(
+            'Your cart is empty',
+            style: TextStyle(
+              fontSize: 18,
+              fontWeight: FontWeight.w700,
+              color: Color(0xFF1A1D2E),
+            ),
+          ),
+          const SizedBox(height: 8),
+          Text(
+            'Add some products to get started',
+            style: TextStyle(
+              fontSize: 13,
+              color: theme.colorScheme.onSurfaceVariant,
+            ),
+          ),
+        ],
+      ),
     );
   }
 }
+
+
 
 class _SummaryPanel extends StatelessWidget {
   final int uniqueCount;
@@ -158,23 +276,49 @@ class _SummaryPanel extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final theme = Theme.of(context);
     return Container(
-      padding: const EdgeInsets.all(16),
+      padding: const EdgeInsets.fromLTRB(20, 20, 20, 24),
       decoration: BoxDecoration(
-        color: Theme.of(context).colorScheme.surfaceContainerHighest,
-        borderRadius: const BorderRadius.vertical(top: Radius.circular(16)),
-        boxShadow: const [BoxShadow(blurRadius: 8, color: Colors.black12)],
+        color: Colors.white,
+        borderRadius: const BorderRadius.vertical(top: Radius.circular(28)),
+        boxShadow: [
+          BoxShadow(
+            color: Colors.black.withOpacity(0.07),
+            blurRadius: 20,
+            offset: const Offset(0, -4),
+          ),
+        ],
       ),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.stretch,
         children: [
-          _Row('Unique Items', '$uniqueCount items in cart'),
-          _Row('Total Units', 'Total Units: $totalUnits'),
-          const Divider(),
-          _Row(
-            'Grand Total',
-            '\$${grandTotal.toStringAsFixed(2)}',
+          _SummaryRow(label: 'Unique Items', value: '$uniqueCount items'),
+          const SizedBox(height: 8),
+          _SummaryRow(label: 'Total Units', value: '$totalUnits units'),
+          const Padding(
+            padding: EdgeInsets.symmetric(vertical: 12),
+            child: Divider(height: 1),
+          ),
+          _SummaryRow(
+            label: 'Grand Total',
+            value: '${grandTotal.toStringAsFixed(2)}',
             bold: true,
+            valueColor: theme.colorScheme.primary,
+          ),
+          const SizedBox(height: 16),
+          FilledButton(
+            onPressed: () {},
+            style: FilledButton.styleFrom(
+              padding: const EdgeInsets.symmetric(vertical: 16),
+              shape: RoundedRectangleBorder(
+                borderRadius: BorderRadius.circular(16),
+              ),
+            ),
+            child: const Text(
+              'Place Order',
+              style: TextStyle(fontSize: 15, fontWeight: FontWeight.w700),
+            ),
           ),
         ],
       ),
@@ -182,26 +326,37 @@ class _SummaryPanel extends StatelessWidget {
   }
 }
 
-class _Row extends StatelessWidget {
+class _SummaryRow extends StatelessWidget {
   final String label;
   final String value;
   final bool bold;
-  const _Row(this.label, this.value, {this.bold = false});
+  final Color? valueColor;
+
+  const _SummaryRow({
+    required this.label,
+    required this.value,
+    this.bold = false,
+    this.valueColor,
+  });
 
   @override
   Widget build(BuildContext context) {
-    final style = bold
-        ? const TextStyle(fontWeight: FontWeight.bold, fontSize: 16)
-        : null;
-    return Padding(
-      padding: const EdgeInsets.symmetric(vertical: 4),
-      child: Row(
-        mainAxisAlignment: MainAxisAlignment.spaceBetween,
-        children: [
-          Text(label, style: style),
-          Text(value, style: style),
-        ],
-      ),
+    final labelStyle = TextStyle(
+      fontSize: bold ? 15 : 13.5,
+      fontWeight: bold ? FontWeight.w700 : FontWeight.w500,
+      color: const Color(0xFF1A1D2E),
+    );
+    final valueStyle = TextStyle(
+      fontSize: bold ? 15 : 13.5,
+      fontWeight: bold ? FontWeight.w800 : FontWeight.w600,
+      color: valueColor ?? const Color(0xFF1A1D2E),
+    );
+    return Row(
+      mainAxisAlignment: MainAxisAlignment.spaceBetween,
+      children: [
+        Text(label, style: labelStyle),
+        Text(value, style: valueStyle),
+      ],
     );
   }
 }
