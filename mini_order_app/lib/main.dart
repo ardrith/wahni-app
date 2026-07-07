@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'app_theme.dart';
 import 'data/local/local_db.dart';
 import 'screens/item_listing_screen.dart';
 
@@ -23,7 +24,7 @@ class MyApp extends StatelessWidget {
       title: 'Wahni',
       debugShowCheckedModeBanner: false,
       theme: ThemeData(
-        colorSchemeSeed: const Color(0xFF5C6BC0),
+        colorSchemeSeed: AppColors.primary,
         useMaterial3: true,
         fontFamily: 'Roboto',
         scaffoldBackgroundColor: const Color(0xFFF6F7FB),

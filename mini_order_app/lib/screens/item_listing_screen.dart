@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import '../app_theme.dart';
 import '../providers/cart_provider.dart';
 import '../providers/product_provider.dart';
 import '../widgets/product_card.dart';
@@ -40,7 +41,7 @@ class ItemListingScreen extends ConsumerWidget {
                                 Text(
                                   'Good Shopping 👋',
                                   style: theme.textTheme.labelLarge?.copyWith(
-                                    color: theme.colorScheme.primary,
+                                    color: AppColors.primary,
                                     fontWeight: FontWeight.w600,
                                   ),
                                 ),
@@ -73,7 +74,7 @@ class ItemListingScreen extends ConsumerWidget {
                                     borderRadius: BorderRadius.circular(14),
                                     boxShadow: [
                                       BoxShadow(
-                                        color: Colors.black.withOpacity(0.07),
+                                        color: Colors.black.withValues(alpha: 0.07),
                                         blurRadius: 12,
                                         offset: const Offset(0, 4),
                                       ),
@@ -81,7 +82,7 @@ class ItemListingScreen extends ConsumerWidget {
                                   ),
                                   child: Icon(
                                     Icons.shopping_bag_outlined,
-                                    color: theme.colorScheme.primary,
+                                    color: AppColors.primary,
                                     size: 22,
                                   ),
                                 ),
@@ -121,7 +122,7 @@ class ItemListingScreen extends ConsumerWidget {
                           borderRadius: BorderRadius.circular(16),
                           boxShadow: [
                             BoxShadow(
-                              color: Colors.black.withOpacity(0.04),
+                              color: Colors.black.withValues(alpha: 0.04),
                               blurRadius: 10,
                               offset: const Offset(0, 2),
                             ),
@@ -234,6 +235,8 @@ class _ErrorView extends StatelessWidget {
               icon: const Icon(Icons.refresh_rounded),
               label: const Text('Try Again'),
               style: FilledButton.styleFrom(
+                backgroundColor: AppColors.primary,
+                foregroundColor: Colors.white,
                 padding:
                     const EdgeInsets.symmetric(horizontal: 28, vertical: 14),
                 shape: RoundedRectangleBorder(

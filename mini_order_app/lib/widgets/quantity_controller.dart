@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import '../app_theme.dart';
 import '../data/models/product.dart';
 import '../providers/cart_provider.dart';
 
@@ -72,12 +73,18 @@ class _QuantityControllerState extends ConsumerState<QuantityController> {
 
   @override
   Widget build(BuildContext context) {
-    final primary = Theme.of(context).colorScheme.primary;
     return Container(
       height: 38,
       decoration: BoxDecoration(
-        color: primary,
+        gradient: AppColors.gradient,
         borderRadius: BorderRadius.circular(12),
+        boxShadow: [
+          BoxShadow(
+            color: AppColors.primary.withValues(alpha: 0.3),
+            blurRadius: 8,
+            offset: const Offset(0, 3),
+          ),
+        ],
       ),
       child: Row(
         mainAxisSize: MainAxisSize.min,

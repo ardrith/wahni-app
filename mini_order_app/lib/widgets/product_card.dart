@@ -1,6 +1,7 @@
 import 'package:cached_network_image/cached_network_image.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import '../app_theme.dart';
 import '../data/models/product.dart';
 import '../providers/cart_provider.dart';
 import 'quantity_controller.dart';
@@ -23,7 +24,7 @@ class ProductCard extends ConsumerWidget {
         borderRadius: BorderRadius.circular(20),
         boxShadow: [
           BoxShadow(
-            color: Colors.black.withOpacity(0.05),
+            color: Colors.black.withValues(alpha: 0.05),
             blurRadius: 16,
             offset: const Offset(0, 4),
           ),
@@ -35,8 +36,8 @@ class ProductCard extends ConsumerWidget {
           children: [
             // Image
             Container(
-              width: 72,
-              height: 72,
+              width: 45,
+              height: 45,
               decoration: BoxDecoration(
                 color: const Color(0xFFF0F1F8),
                 borderRadius: BorderRadius.circular(16),
@@ -51,7 +52,7 @@ class ProductCard extends ConsumerWidget {
                     height: 16,
                     child: CircularProgressIndicator(
                       strokeWidth: 2,
-                      color: theme.colorScheme.primary,
+                      color: AppColors.primary,
                     ),
                   ),
                 ),
@@ -81,10 +82,10 @@ class ProductCard extends ConsumerWidget {
                   const SizedBox(height: 8),
                   Text(
                     'Rs. ${product.price.toStringAsFixed(2)}',
-                    style: TextStyle(
+                    style: const TextStyle(
                       fontSize: 15,
                       fontWeight: FontWeight.w800,
-                      color: theme.colorScheme.primary,
+                      color: AppColors.primary,
                     ),
                   ),
                 ],
@@ -118,30 +119,25 @@ class _AddButton extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return GestureDetector(
-      onTap: onTap,
-      child: Container(
-        height: 38,
-        padding: const EdgeInsets.symmetric(horizontal: 16),
-        decoration: BoxDecoration(
-          color: Theme.of(context).colorScheme.primary,
-          borderRadius: BorderRadius.circular(12),
-        ),
-        child: const Row(
-          mainAxisSize: MainAxisSize.min,
-          children: [
-            Icon(Icons.add_rounded, color: Colors.white, size: 16),
-            SizedBox(width: 4),
-            Text(
-              'Add',
-              style: TextStyle(
-                color: Colors.white,
-                fontWeight: FontWeight.w700,
-                fontSize: 13,
-              ),
+    return GradientButton(
+      onPressed: onTap,
+      height: 38,
+      radius: 12,
+      padding: const EdgeInsets.symmetric(horizontal: 16),
+      child: const Row(
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          Icon(Icons.add_rounded, color: Colors.white, size: 16),
+          SizedBox(width: 4),
+          Text(
+            'Add',
+            style: TextStyle(
+              color: Colors.white,
+              fontWeight: FontWeight.w700,
+              fontSize: 13,
             ),
-          ],
-        ),
+          ),
+        ],
       ),
     );
   }

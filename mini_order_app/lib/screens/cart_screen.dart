@@ -1,6 +1,7 @@
 import 'package:cached_network_image/cached_network_image.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import '../app_theme.dart';
 import '../data/models/cart_item.dart';
 import '../providers/cart_provider.dart';
 import '../widgets/quantity_controller.dart';
@@ -23,7 +24,7 @@ class CartScreen extends ConsumerWidget {
       body: SafeArea(
         child: Column(
           children: [
-       
+            // ── Header ──────────────────────────────────────────────
             Padding(
               padding: const EdgeInsets.fromLTRB(20, 20, 20, 16),
               child: Row(
@@ -38,15 +39,15 @@ class CartScreen extends ConsumerWidget {
                         borderRadius: BorderRadius.circular(14),
                         boxShadow: [
                           BoxShadow(
-                            color: Colors.black.withOpacity(0.07),
+                            color: Colors.black.withValues(alpha: 0.07),
                             blurRadius: 12,
                             offset: const Offset(0, 4),
                           ),
                         ],
                       ),
-                      child: Icon(
+                      child: const Icon(
                         Icons.arrow_back_ios_new_rounded,
-                        color: theme.colorScheme.primary,
+                        color: AppColors.primary,
                         size: 18,
                       ),
                     ),
@@ -58,7 +59,7 @@ class CartScreen extends ConsumerWidget {
                       Text(
                         'My Cart 🛍️',
                         style: theme.textTheme.labelLarge?.copyWith(
-                          color: theme.colorScheme.primary,
+                          color: AppColors.primary,
                           fontWeight: FontWeight.w600,
                         ),
                       ),
@@ -76,10 +77,10 @@ class CartScreen extends ConsumerWidget {
               ),
             ),
 
-    
+            // ── List ────────────────────────────────────────────────
             Expanded(
               child: items.isEmpty
-                  ? _EmptyCart(theme: theme)
+                  ? const _EmptyCart()
                   : ListView.builder(
                       padding: const EdgeInsets.only(bottom: 16),
                       itemCount: items.length,
@@ -87,7 +88,7 @@ class CartScreen extends ConsumerWidget {
                     ),
             ),
 
-   
+            // ── Summary panel ────────────────────────────────────────
             if (items.isNotEmpty)
               _SummaryPanel(
                 uniqueCount: uniqueCount,
@@ -101,18 +102,13 @@ class CartScreen extends ConsumerWidget {
   }
 }
 
-
-
 class _CartItemCard extends ConsumerWidget {
   final CartItem item;
   const _CartItemCard({required this.item});
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
-    final theme = Theme.of(context);
     final subtotal = item.price * item.quantity;
-
-
     final product = Product(
       id: item.productId,
       name: item.name,
@@ -120,104 +116,119 @@ class _CartItemCard extends ConsumerWidget {
       image: item.image,
     );
 
-    return Container(
-      margin: const EdgeInsets.symmetric(horizontal: 16, vertical: 6),
-      decoration: BoxDecoration(
-        color: Colors.white,
-        borderRadius: BorderRadius.circular(20),
-        boxShadow: [
-          BoxShadow(
-            color: Colors.black.withOpacity(0.05),
-            blurRadius: 16,
-            offset: const Offset(0, 4),
+    return Dismissible(
+      key: ValueKey(item.productId),
+      direction: DismissDirection.endToStart,
+      onDismissed: (_) =>
+          ref.read(cartProvider.notifier).removeItem(item.productId),
+      background: Container(
+        margin: const EdgeInsets.symmetric(horizontal: 16, vertical: 6),
+        decoration: BoxDecoration(
+          gradient: const LinearGradient(
+            colors: [Color(0xFFEF5350), Color(0xFFE53935)],
           ),
-        ],
+          borderRadius: BorderRadius.circular(20),
+        ),
+        alignment: Alignment.centerRight,
+        padding: const EdgeInsets.only(right: 20),
+        child: const Icon(Icons.delete_outline_rounded,
+            color: Colors.white, size: 26),
       ),
-      child: Padding(
-        padding: const EdgeInsets.all(14),
-        child: Row(
-          children: [
-            // Image
-            Container(
-              width: 52,
-              height: 52,
-              decoration: BoxDecoration(
-                color: const Color(0xFFF0F1F8),
-                borderRadius: BorderRadius.circular(16),
-              ),
-              padding: const EdgeInsets.all(10),
-              child: CachedNetworkImage(
-                imageUrl: item.image,
-                fit: BoxFit.contain,
-                placeholder: (context, url) => Center(
-                  child: SizedBox(
-                    width: 16,
-                    height: 16,
-                    child: CircularProgressIndicator(
-                      strokeWidth: 2,
-                      color: theme.colorScheme.primary,
-                    ),
-                  ),
-                ),
-                errorWidget: (context, url, error) => Icon(
-                  Icons.image_not_supported_outlined,
-                  color: theme.colorScheme.outline,
-                ),
-              ),
+      child: Container(
+        margin: const EdgeInsets.symmetric(horizontal: 16, vertical: 6),
+        decoration: BoxDecoration(
+          color: Colors.white,
+          borderRadius: BorderRadius.circular(20),
+          boxShadow: [
+            BoxShadow(
+              color: Colors.black.withValues(alpha: 0.05),
+              blurRadius: 16,
+              offset: const Offset(0, 4),
             ),
-            const SizedBox(width: 14),
-            // Name + price + subtotal
-            Expanded(
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  Text(
-                    item.name,
-                    maxLines: 2,
-                    overflow: TextOverflow.ellipsis,
-                    style: const TextStyle(
-                      fontSize: 13.5,
-                      fontWeight: FontWeight.w600,
-                      color: Color(0xFF1A1D2E),
-                      height: 1.3,
-                    ),
-                  ),
-                  const SizedBox(height: 4),
-                  Text(
-                    'Rs .${item.price.toStringAsFixed(2)}',
-                    style: TextStyle(
-                      fontSize: 13,
-                      fontWeight: FontWeight.w500,
-                      color: theme.colorScheme.outline,
-                    ),
-                  ),
-                  const SizedBox(height: 2),
-                  Text(
-                    'Subtotal: \n Rs. ${subtotal.toStringAsFixed(2)}',
-                    style: TextStyle(
-                      fontSize: 13,
-                      fontWeight: FontWeight.w700,
-                      color: theme.colorScheme.primary,
-                    ),
-                  ),
-                ],
-              ),
-            ),
-            const SizedBox(width: 10),
-
-            QuantityController(product: product),
           ],
+        ),
+        child: Padding(
+          padding: const EdgeInsets.all(14),
+          child: Row(
+            children: [
+              // Image
+              Container(
+                width: 42,
+                height: 42,
+                decoration: BoxDecoration(
+                  color: const Color(0xFFF0F1F8),
+                  borderRadius: BorderRadius.circular(16),
+                ),
+                padding: const EdgeInsets.all(10),
+                child: CachedNetworkImage(
+                  imageUrl: item.image,
+                  fit: BoxFit.contain,
+                  placeholder: (context, url) => const Center(
+                    child: SizedBox(
+                      width: 16,
+                      height: 16,
+                      child: CircularProgressIndicator(
+                        strokeWidth: 2,
+                        color: AppColors.primary,
+                      ),
+                    ),
+                  ),
+                  errorWidget: (context, url, error) => const Icon(
+                    Icons.image_not_supported_outlined,
+                    color: Color(0xFF8A8FA8),
+                  ),
+                ),
+              ),
+              const SizedBox(width: 14),
+              // Name + price + subtotal
+              Expanded(
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Text(
+                      item.name,
+                      maxLines: 2,
+                      overflow: TextOverflow.ellipsis,
+                      style: const TextStyle(
+                        fontSize: 13.5,
+                        fontWeight: FontWeight.w600,
+                        color: Color(0xFF1A1D2E),
+                        height: 1.3,
+                      ),
+                    ),
+                    const SizedBox(height: 4),
+                    Text(
+                      'Rs. ${item.price.toStringAsFixed(2)}',
+                      style: const TextStyle(
+                        fontSize: 13,
+                        fontWeight: FontWeight.w500,
+                        color: Color(0xFF8A8FA8),
+                      ),
+                    ),
+                    const SizedBox(height: 2),
+                    Text(
+                      'Subtotal: Rs. ${subtotal.toStringAsFixed(2)}',
+                      style: const TextStyle(
+                        fontSize: 13,
+                        fontWeight: FontWeight.w700,
+                        color: AppColors.primary,
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+              const SizedBox(width: 10),
+              QuantityController(product: product),
+            ],
+          ),
         ),
       ),
     );
   }
 }
 
-
-
 class _EmptyCart extends StatelessWidget {
-  final ThemeData theme;
-  const _EmptyCart({required this.theme});
+  const _EmptyCart();
 
   @override
   Widget build(BuildContext context) {
@@ -228,14 +239,14 @@ class _EmptyCart extends StatelessWidget {
           Container(
             width: 80,
             height: 80,
-            decoration: BoxDecoration(
-              color: theme.colorScheme.primaryContainer,
+            decoration: const BoxDecoration(
+              gradient: AppColors.gradientDiagonal,
               shape: BoxShape.circle,
             ),
-            child: Icon(
+            child: const Icon(
               Icons.shopping_bag_outlined,
               size: 38,
-              color: theme.colorScheme.primary,
+              color: Colors.white,
             ),
           ),
           const SizedBox(height: 20),
@@ -248,20 +259,15 @@ class _EmptyCart extends StatelessWidget {
             ),
           ),
           const SizedBox(height: 8),
-          Text(
+          const Text(
             'Add some products to get started',
-            style: TextStyle(
-              fontSize: 13,
-              color: theme.colorScheme.onSurfaceVariant,
-            ),
+            style: TextStyle(fontSize: 13, color: Color(0xFF8A8FA8)),
           ),
         ],
       ),
     );
   }
 }
-
-
 
 class _SummaryPanel extends StatelessWidget {
   final int uniqueCount;
@@ -276,7 +282,6 @@ class _SummaryPanel extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final theme = Theme.of(context);
     return Container(
       padding: const EdgeInsets.fromLTRB(20, 20, 20, 24),
       decoration: BoxDecoration(
@@ -284,7 +289,7 @@ class _SummaryPanel extends StatelessWidget {
         borderRadius: const BorderRadius.vertical(top: Radius.circular(28)),
         boxShadow: [
           BoxShadow(
-            color: Colors.black.withOpacity(0.07),
+            color: Colors.black.withValues(alpha: 0.07),
             blurRadius: 20,
             offset: const Offset(0, -4),
           ),
@@ -302,23 +307,14 @@ class _SummaryPanel extends StatelessWidget {
           ),
           _SummaryRow(
             label: 'Grand Total',
-            value: '${grandTotal.toStringAsFixed(2)}',
+            value: 'Rs. ${grandTotal.toStringAsFixed(2)}',
             bold: true,
-            valueColor: theme.colorScheme.primary,
+            valueColor: AppColors.primary,
           ),
           const SizedBox(height: 16),
-          FilledButton(
+          GradientButton(
             onPressed: () {},
-            style: FilledButton.styleFrom(
-              padding: const EdgeInsets.symmetric(vertical: 16),
-              shape: RoundedRectangleBorder(
-                borderRadius: BorderRadius.circular(16),
-              ),
-            ),
-            child: const Text(
-              'Place Order',
-              style: TextStyle(fontSize: 15, fontWeight: FontWeight.w700),
-            ),
+            child: const Text('Place Order'),
           ),
         ],
       ),
@@ -341,21 +337,25 @@ class _SummaryRow extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final labelStyle = TextStyle(
-      fontSize: bold ? 15 : 13.5,
-      fontWeight: bold ? FontWeight.w700 : FontWeight.w500,
-      color: const Color(0xFF1A1D2E),
-    );
-    final valueStyle = TextStyle(
-      fontSize: bold ? 15 : 13.5,
-      fontWeight: bold ? FontWeight.w800 : FontWeight.w600,
-      color: valueColor ?? const Color(0xFF1A1D2E),
-    );
     return Row(
       mainAxisAlignment: MainAxisAlignment.spaceBetween,
       children: [
-        Text(label, style: labelStyle),
-        Text(value, style: valueStyle),
+        Text(
+          label,
+          style: TextStyle(
+            fontSize: bold ? 15 : 13.5,
+            fontWeight: bold ? FontWeight.w700 : FontWeight.w500,
+            color: const Color(0xFF1A1D2E),
+          ),
+        ),
+        Text(
+          value,
+          style: TextStyle(
+            fontSize: bold ? 15 : 13.5,
+            fontWeight: bold ? FontWeight.w800 : FontWeight.w600,
+            color: valueColor ?? const Color(0xFF1A1D2E),
+          ),
+        ),
       ],
     );
   }
