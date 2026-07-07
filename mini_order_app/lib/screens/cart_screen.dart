@@ -77,7 +77,7 @@ class CartScreen extends ConsumerWidget {
               ),
             ),
 
-            // ── List ────────────────────────────────────────────────
+          
             Expanded(
               child: items.isEmpty
                   ? const _EmptyCart()
@@ -88,7 +88,7 @@ class CartScreen extends ConsumerWidget {
                     ),
             ),
 
-            // ── Summary panel ────────────────────────────────────────
+
             if (items.isNotEmpty)
               _SummaryPanel(
                 uniqueCount: uniqueCount,
@@ -180,7 +180,7 @@ class _CartItemCard extends ConsumerWidget {
                 ),
               ),
               const SizedBox(width: 14),
-              // Name + price + subtotal
+        
               Expanded(
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,

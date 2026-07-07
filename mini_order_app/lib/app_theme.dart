@@ -17,7 +17,7 @@ class AppColors {
   );
 }
 
-/// Drop-in replacement for FilledButton / any solid primary button.
+
 class GradientButton extends StatelessWidget {
   final VoidCallback? onPressed;
   final Widget child;
